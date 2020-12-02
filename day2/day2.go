@@ -32,7 +32,12 @@ func splitInput(line string) (num1 int, num2 int, char string, password string) 
 }
 
 func part1(min int, max int, char string, password string) bool {
-	count := strings.Count(password, char)
+	var count int
+	for i := 0; i < len(password) && count <= max; i++ {
+		if char == string(password[i]) {
+			count++
+		}
+	}
 	return count >= min && count <= max
 }
 
