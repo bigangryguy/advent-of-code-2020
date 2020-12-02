@@ -22,6 +22,22 @@ func getInput(filename string) ([]int, error) {
 	return nums, nil
 }
 
+func sum(nums []int) int {
+	var result int
+	for _, v := range nums {
+		result += v
+	}
+	return result
+}
+
+func product(nums []int) int {
+	result := 1
+	for _, v := range nums {
+		result *= v
+	}
+	return result
+}
+
 func part1(nums []int) (result int) {
 	numsTable := make(map[int]int)
 	for i := 0; i < len(nums); i++ {
@@ -51,22 +67,6 @@ func part2(nums []int) (result int) {
 			numsTable[first] = i
 			numsTable[nums[j]] = j
 		}
-	}
-	return result
-}
-
-func sum(nums []int) int {
-	var result int
-	for _, v := range nums {
-		result += v
-	}
-	return result
-}
-
-func product(nums []int) int {
-	result := 1
-	for _, v := range nums {
-		result *= v
 	}
 	return result
 }
