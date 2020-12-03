@@ -35,6 +35,8 @@ func part1(lines []string) (result int) {
 	for _, line := range lines {
 		min, max, char, password := splitInput(line)
 		var count int
+		// Could use strings.Count() here but expanding to a for loop
+		// allows us to short-circuit the logic if count > max
 		for i := 0; i < len(password) && count <= max; i++ {
 			if char == string(password[i]) {
 				count++
