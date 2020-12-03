@@ -16,7 +16,14 @@ func TestPart1(t *testing.T) {
 }
 
 func TestPart2(t *testing.T) {
-	actual := part2(grid)
+	slopes := []Slope {
+		Slope{1, 1},
+		Slope{3, 1},
+		Slope{5, 1},
+		Slope{7, 1},
+		Slope{1, 2},
+	}
+	actual := part2(slopes, grid)
 	expected := 336
 	if actual != expected {
 		t.Errorf("part1 = %d, expected %d", actual, expected)

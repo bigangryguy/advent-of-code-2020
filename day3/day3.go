@@ -36,14 +36,7 @@ func part1(slope Slope, grid []string) (count int) {
 	return
 }
 
-func part2(grid []string) (result int) {
-	slopes := []Slope {
-		Slope{1, 1},
-		Slope{3, 1},
-		Slope{5, 1},
-		Slope{7, 1},
-		Slope{1, 2},
-	}
+func part2(slopes []Slope, grid []string) (result int) {
 	result = 1
 	for _, v := range slopes {
 		result *= part1(v, grid)
@@ -59,7 +52,15 @@ func main() {
 	}
 
 	part1Result := part1(Slope{3, 1}, lines)
-	part2Result := part2(lines)
+
+	slopes := []Slope {
+		Slope{1, 1},
+		Slope{3, 1},
+		Slope{5, 1},
+		Slope{7, 1},
+		Slope{1, 2},
+	}
+	part2Result := part2(slopes, lines)
 
 	fmt.Printf("Part 1 result: %d\n", part1Result)
 	fmt.Printf("Part 2 result: %d\n", part2Result)
