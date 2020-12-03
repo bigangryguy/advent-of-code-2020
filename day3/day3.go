@@ -26,14 +26,11 @@ func part1(slope Slope, grid []string) (count int) {
 
 	var col int
 	for i := 0; i < len(grid); i += slope.Vertical {
-		if grid[i][col] == '#' {
+		if grid[i][col % colLimit] == '#' {
 			count++
 		}
 
 		col += slope.Horizontal
-		if col >= colLimit {
-			col -= colLimit
-		}
 	}
 
 	return
