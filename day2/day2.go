@@ -31,23 +31,35 @@ func splitInput(line string) (num1 int, num2 int, char string, password string) 
 	return
 }
 
-func part1(min int, max int, char string, password string) bool {
-	var count int
-	for i := 0; i < len(password) && count <= max; i++ {
-		if char == string(password[i]) {
-			count++
+func part1(lines []string) (result int) {
+	for _, line := range lines {
+		min, max, char, password := splitInput(line)
+		var count int
+		for i := 0; i < len(password) && count <= max; i++ {
+			if char == string(password[i]) {
+				count++
+			}
+		}
+		if count >= min && result <= max {
+			result++
 		}
 	}
-	return count >= min && count <= max
+	return
 }
 
-func part2(pos1 int, pos2 int, char string, password string) bool {
-	pos1--
-	pos2--
+func part2(lines []string) (result int) {
+	for _, line := range lines {
+		pos1, pos2, char, password := splitInput(line)
+		pos1--
+		pos2--
 
-	inPos1 := pos1 < len(password) && string(password[pos1]) == char
-	inPos2 := pos2 < len(password) && string(password[pos2]) == char
-	return (inPos1 || inPos2) && (inPos1 != inPos2)
+		inPos1 := pos1 < len(password) && string(password[pos1]) == char
+		inPos2 := pos2 < len(password) && string(password[pos2]) == char
+		if (inPos1 || inPos2) && (inPos1 != inPos2) {
+			result ++
+		}
+	}
+	return
 }
 
 func main() {
@@ -56,18 +68,8 @@ func main() {
 		fmt.Println("Error getting input: ", err)
 	}
 
-	var part1Valid int
-	var part2Valid int
-	for i := 0; i < len(lines); i++ {
-		num1, num2, char, password := splitInput(lines[i])
-
-		if part1(num1, num2, char, password) {
-			part1Valid++
-		}
-		if part2(num1, num2, char, password) {
-			part2Valid++
-		}
-	}
+	part1Valid := part1(lines)
+	part2Valid := part2(lines)
 
 	fmt.Printf("Valid passwords (Part 1): %d\n", part1Valid)
 	fmt.Printf("Valid passwords (Part 2): %d\n", part2Valid)
