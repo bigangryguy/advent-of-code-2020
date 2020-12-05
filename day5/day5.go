@@ -17,23 +17,22 @@ func getInput(filename string) ([]string, error) {
 	return strings.Split(string(data), "\n"), nil
 }
 
-func parseRow(row string) (result int, err error) {
-	if len(row) != 7 {
-		err = errors.New("Row section must be 7 characters")
+func doPartitioning(input string, expectedLength int, lowerChar string, upperChar string, min int, max int) (result int, err error) {
+	if len(input) != expectedLength {
+		err = errors.New("Input length does not match expected length")
 		return
 	}
 
-	min := 0
-	max := 127
-
-	for _, c := range row {
+	for _, c := range input {
+		cStr := string(c)
 		split := (min + max) / 2
-		if c == 'F' {
+		if cStr == lowerChar {
 			max = split
-		} else if c == 'B' {
+		} else if cStr == upperChar {
 			min = split + 1
 		} else {
-			err = errors.New("Row section can only contain F or B characters")
+			err = errors.New(fmt.Sprintf("Input can only contain %v or %v characters", lowerChar, upperChar))
+			return
 		}
 	}
 	// At this point, min == max
@@ -41,28 +40,12 @@ func parseRow(row string) (result int, err error) {
 	return
 }
 
+func parseRow(row string) (result int, err error) {
+	return doPartitioning(row, 7, "F", "B", 0, 127)
+}
+
 func parseColumn(column string) (result int, err error) {
-	if len(column) != 3 {
-		err = errors.New("Column section must be 3 characters")
-		return
-	}
-
-	min := 0
-	max := 7
-
-	for _, c := range column {
-		split := (min + max) / 2
-		if c == 'L' {
-			max = split
-		} else if c == 'R' {
-			min = split + 1
-		} else {
-			err = errors.New("Column section can only contain L or R characters")
-		}
-	}
-	// At this point, min == max
-	result = min
-	return
+	return doPartitioning(column, 3, "L", "R", 0, 7)
 }
 
 func getSeatID(line string) (result int, err error) {
