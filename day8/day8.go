@@ -75,6 +75,8 @@ func part2(lines []string) (result int, err error) {
 	}
 
 	// Seriously, trial and error?
+	// Ah, duh, figured out the graph-based solution after giving in and doing this.
+	// Will implement after completing day 9.
 	for i := 0; i < len(opcodes); i++ {
 		oldOp := opcodes[i].Op
 		if opcodes[i].Op == "jmp" {
