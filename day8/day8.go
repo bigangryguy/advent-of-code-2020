@@ -85,18 +85,18 @@ func part2(lines []string) (result int, err error) {
 			continue
 		}
 
-		var failed bool
+		success := true
 		result = 0
 		alreadyRun := map[int]int{0: 1}
 		for index := 0; index < len(opcodes); {
 			index, result = executeOpCode(opcodes, index, result)
 			if _, found := alreadyRun[index]; found {
-				failed = true
+				success = false
 				break
 			}
 			alreadyRun[index]++
 		}
-		if !failed {
+		if success {
 			break
 		}
 		opcodes[i].Op = oldOp
