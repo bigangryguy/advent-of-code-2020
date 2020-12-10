@@ -13,6 +13,13 @@ type OpCode struct {
 	Value int
 }
 
+type LineOfCode struct {
+	LineNbr int
+	Code OpCode
+	Calls int
+	CalledBy []int
+}
+
 func getInput(filename string) ([]string, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -35,6 +42,48 @@ func getOpCodes(lines []string) (opcodes []OpCode, err error) {
 	return
 }
 
+func getLinesOfCode(lines []string) (locs []LineOfCode, err error) {
+	var value int
+	for i, line := range lines {
+		tokens := strings.Split(line, " ")
+		value, err = strconv.Atoi(tokens[1])
+		if err != nil {
+			return
+		}
+		op := tokens[0]
+		nextLine := i + 1
+		if op == "jmp" {
+			nextLine = i + value
+		}
+		locs = append(locs, LineOfCode{
+			LineNbr: i,
+			Code: OpCode{ op, value },
+			Calls: nextLine,
+			CalledBy: []int {},
+		})
+	}
+
+	// Set callers after all lines are added
+	for _, loc := range locs {
+		if loc.Calls < len(locs) {
+			locs[loc.Calls].CalledBy = append(locs[loc.Calls].CalledBy, loc.LineNbr)
+		}
+	}
+
+	// Eliminate dead code callers after all lines have callers set
+	// Since index == line number, no need for map
+	for i := 0; i < len(locs); i++ {
+		var revisedCalledBy []int
+		for _, caller := range locs[i].CalledBy {
+			if caller == 0 || len(locs[caller].CalledBy) > 0 {
+				revisedCalledBy = append(revisedCalledBy, caller)
+			}
+		}
+		locs[i].CalledBy = revisedCalledBy
+	}
+	return
+}
+
 func executeOpCode(opcodes []OpCode, indexToExecute int, currentAcc int) (nextIndex int, nextAcc int) {
 	opcode := opcodes[indexToExecute]
 	switch opcode.Op {
@@ -51,8 +100,25 @@ func executeOpCode(opcodes []OpCode, indexToExecute int, currentAcc int) (nextIn
 	return
 }
 
+func canReachLineFrom(locs []LineOfCode, start int, end int) bool {
+	alreadyChecked := make(map[int]int)
+	for index := start; index < len(locs); {
+		if _, found := alreadyChecked[index]; found {
+			break
+		}
+		alreadyChecked[index]++
+		if locs[index].Calls == end {
+			return true
+		} else {
+			index = locs[index].Calls
+		}
+	}
+	return false
+}
+
 func part1(lines []string) (result int, err error) {
-	opcodes, err := getOpCodes(lines)
+	var opcodes []OpCode
+	opcodes, err = getOpCodes(lines)
 	if err != nil {
 		return
 	}
@@ -68,46 +134,22 @@ func part1(lines []string) (result int, err error) {
 	return
 }
 
-func part2(lines []string) (result int, err error) {
-	opcodes, err := getOpCodes(lines)
-	if err != nil {
-		return
-	}
-
-	// Seriously, trial and error?
-	// Ah, duh, figured out the graph-based solution after giving in and doing this.
-	// Will implement after completing day 9.
-	for i := 0; i < len(opcodes); i++ {
-		oldOp := opcodes[i].Op
-		if opcodes[i].Op == "jmp" {
-			opcodes[i].Op = "nop"
-		} else if opcodes[i].Op == "nop" {
-			opcodes[i].Op = "jmp"
-		} else {
-			continue
-		}
-
-		success := true
-		result = 0
-		alreadyRun := map[int]int{0: 1}
-		for index := 0; index < len(opcodes); {
-			index, result = executeOpCode(opcodes, index, result)
-			if _, found := alreadyRun[index]; found {
-				success = false
-				break
-			}
-			alreadyRun[index]++
-		}
-		if success {
-			break
-		}
-		opcodes[i].Op = oldOp
-	}
-	return
-}
+//func part2(lines []string) (result int, err error) {
+//	var locs []LineOfCode
+//	locs, err = getLinesOfCode(lines)
+//	if err != nil {
+//		return
+//	}
+//
+//	// Find start of loop
+//	alreadyRun := map[int]int { 0 : 1 }
+//	for index := 0; index < len(locs); {
+//		index, acc := executeOpCode()
+//	}
+//}
 
 func main() {
-	lines, err := getInput("day8_input.txt")
+	lines, err := getInput("day8_test_input.txt")
 	if err != nil {
 		fmt.Println("Error getting input: ", err)
 	}
@@ -118,9 +160,12 @@ func main() {
 	}
 	fmt.Printf("Part 1 answer: %d\n", part1Result)
 
-	part2Result, err := part2(lines)
-	if err != nil {
-		fmt.Printf("Error getting part 2 answer: %v\n", err)
-	}
-	fmt.Printf("Part 2 answer: %d\n", part2Result)
+	locs, _ := getLinesOfCode(lines)
+	fmt.Printf("Lines of code: %v\n", locs)
+
+	//part2Result, err := part2(lines)
+	//if err != nil {
+	//	fmt.Printf("Error getting part 2 answer: %v\n", err)
+	//}
+	//fmt.Printf("Part 2 answer: %d\n", part2Result)
 }
