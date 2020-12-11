@@ -317,18 +317,18 @@ func Test_part1(t *testing.T) {
 	}
 }
 
-//func Test_part2(t *testing.T) {
-//	lines, err := getInput("day8_test_input.txt")
-//	if err != nil {
-//		t.Error("Received unexpected error")
-//	}
-//
-//	expected := 8
-//	actual, err := part2(lines)
-//	if err != nil {
-//		t.Error("Received unexpected error")
-//	}
-//	if actual != expected {
-//		t.Errorf("part2 = %d, expected %d\n", actual, expected)
-//	}
-//}
+func Test_part2(t *testing.T) {
+	lines, err := getInput("day8_test_input.txt")
+	if err != nil {
+		t.Error("Received unexpected error")
+	}
+
+	expected := 8
+	actual, err := part2(lines)
+	if err != nil {
+		t.Error("Received unexpected error")
+	}
+	if actual != expected {
+		t.Errorf("part2 = %d, expected %d\n", actual, expected)
+	}
+}

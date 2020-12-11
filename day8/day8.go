@@ -134,22 +134,76 @@ func part1(lines []string) (result int, err error) {
 	return
 }
 
-//func part2(lines []string) (result int, err error) {
-//	var locs []LineOfCode
-//	locs, err = getLinesOfCode(lines)
-//	if err != nil {
-//		return
-//	}
-//
-//	// Find start of loop
-//	alreadyRun := map[int]int { 0 : 1 }
-//	for index := 0; index < len(locs); {
-//		index, acc := executeOpCode()
-//	}
-//}
+func part2(lines []string) (result int, err error) {
+	var locs []LineOfCode
+	locs, err = getLinesOfCode(lines)
+	if err != nil {
+		return
+	}
+
+	// Find start of loop
+	alreadyRun := map[int]int { 0 : 1 }
+	var loopStartIndex int
+	for index := 0; index < len(locs); {
+		loopStartIndex = index
+		index = locs[index].Calls
+		if _, found := alreadyRun[index]; found {
+			break
+		}
+		alreadyRun[index]++
+	}
+
+	for _, loc := range locs {
+		fmt.Printf("%v\n", loc)
+	}
+
+	index := locs[loopStartIndex].CalledBy[0]
+	fmt.Printf("loopStartIndex: %d\n", loopStartIndex)
+	fmt.Printf("index: %d\n", index)
+	for {
+		oldOp := locs[index].Code.Op
+		oldCalls := locs[index].Calls
+		if oldOp == "nop" {
+			locs[index].Code.Op = "jmp"
+			locs[index].Calls = index + locs[index].Code.Value
+		} else if oldOp == "jmp" {
+			locs[index].Code.Op = "nop"
+			locs[index].Calls = index + 1
+		} else {
+			index = locs[index].CalledBy[0]
+			continue
+		}
+
+		if !canReachLineFrom(locs, index, loopStartIndex) {
+			break
+		}
+		locs[index].Code.Op = oldOp
+		locs[index].Calls = oldCalls
+		if len(locs[index].CalledBy) == 0 {
+			err = errors.New(
+				fmt.Sprintf("Error backtracking. No previous line at index %d - %v",
+					index, locs[index]))
+			return
+		}
+		fmt.Printf("index: %d\n", index)
+		index = locs[index].CalledBy[0]
+	}
+
+	for index := 0; index < len(locs); {
+		if locs[index].Code.Op == "acc" {
+			result += locs[index].Code.Value
+			index++
+		} else if locs[index].Code.Op == "jmp" {
+			index += locs[index].Code.Value
+		} else {
+			index++
+		}
+	}
+	return
+}
 
 func main() {
-	lines, err := getInput("day8_test_input.txt")
+	lines, err := getInput("day8_input.txt")
 	if err != nil {
 		fmt.Println("Error getting input: ", err)
 	}
@@ -160,12 +214,9 @@ func main() {
 	}
 	fmt.Printf("Part 1 answer: %d\n", part1Result)
 
-	locs, _ := getLinesOfCode(lines)
-	fmt.Printf("Lines of code: %v\n", locs)
-
-	//part2Result, err := part2(lines)
-	//if err != nil {
-	//	fmt.Printf("Error getting part 2 answer: %v\n", err)
-	//}
-	//fmt.Printf("Part 2 answer: %d\n", part2Result)
+	part2Result, err := part2(lines)
+	if err != nil {
+		fmt.Printf("Error getting part 2 answer: %v\n", err)
+	}
+	fmt.Printf("Part 2 answer: %d\n", part2Result)
 }
