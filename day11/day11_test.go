@@ -174,7 +174,7 @@ func Test_applyRulesUntilStable(t *testing.T) {
 			"#", ".", "#", "L", "#", "L", "#", ".", "#", "#",
 		},
 	}
-	actual := applyRulesUntilStable(layout, 4)
+	actual := applyRulesUntilStable(layout, 4, false)
 	if !areLayoutsSame(actual, expected) {
 		t.Error("applyRulesUntilStable failed")
 	}

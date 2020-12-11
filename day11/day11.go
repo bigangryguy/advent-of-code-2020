@@ -131,7 +131,7 @@ func applyRules(layout Layout, tolerance int) Layout {
 	return applied
 }
 
-func applyRulesWithRange(layout Layout, tolerance int) Layout {
+func applyRulesFirstSeat(layout Layout, tolerance int) Layout {
 	applied := layout.copy()
 	for y := 0; y < layout.Height; y++ {
 		for x:= 0; x < layout.Width; x++ {
@@ -140,117 +140,32 @@ func applyRulesWithRange(layout Layout, tolerance int) Layout {
 				continue
 			} else {
 				var seatsOccupied int
-				// Up
-				for ay := intMax(0, y-1); ay >= 0; ay-- {
-					if ay == y {
-						break
-					}
-					if layout.seatAt(x, ay) != Floor {
-						if layout.seatAt(x, ay) == Occupied {
-							seatsOccupied++
-						}
-						break
-					}
+				deltas := [8][2]int {
+					{0, -1},
+					{0, 1},
+					{-1, 0},
+					{1, 0},
+					{-1, -1},
+					{1, -1},
+					{-1, 1},
+					{1, 1},
 				}
-				// Down
-				for ay := intMin(y+1, layout.Height-1); ay < layout.Height; ay++ {
-					if ay == y {
-						break
-					}
-					if layout.seatAt(x, ay)  != Floor {
-						if layout.seatAt(x, ay) == Occupied {
-							seatsOccupied++
+				for _, delta := range deltas {
+					ax := x
+					ay := y
+					for {
+						ax += delta[0]
+						ay += delta[1]
+						if ax < 0 || ax >= layout.Width || ay < 0 || ay >= layout.Height {
+							break
 						}
-						break
-					}
-				}
-				// Left
-				for ax := intMax(0, x-1); ax >= 0; ax-- {
-					if ax == x {
-						break
-					}
-					if layout.seatAt(ax, y) != Floor {
-						if layout.seatAt(ax, y) == Occupied {
-							seatsOccupied++
+						if layout.seatAt(ax, ay) != Floor {
+							if layout.seatAt(ax, ay) == Occupied {
+								seatsOccupied++
+							}
+							break
 						}
-						break
 					}
-				}
-				// Right
-				for ax := intMin(x+1, layout.Width-1); ax < layout.Width; ax++ {
-					if ax == x {
-						break
-					}
-					if layout.seatAt(ax, y) != Floor {
-						if layout.seatAt(ax, y) == Occupied {
-							seatsOccupied++
-						}
-						break
-					}
-				}
-				// Up/Left
-				ax := x-1
-				ay := y-1
-				for {
-					if ax < 0 || ay < 0 {
-						break
-					}
-					if layout.seatAt(ax, ay) != Floor {
-						if layout.seatAt(ax, ay) == Occupied {
-							seatsOccupied++
-						}
-						break
-					}
-					ax--
-					ay--
-				}
-				// Up/Right
-				ax = x+1
-				ay = y-1
-				for {
-					if ax >= layout.Width || ay < 0 {
-						break
-					}
-					if layout.seatAt(ax, ay) != Floor {
-						if layout.seatAt(ax, ay) == Occupied {
-							seatsOccupied++
-						}
-						break
-					}
-					ax++
-					ay--
-				}
-				// Down/Left
-				ax = x-1
-				ay = y+1
-				for {
-					if ax < 0 || ay >= layout.Height {
-						break
-					}
-					if layout.seatAt(ax, ay) != Floor {
-						if layout.seatAt(ax, ay) == Occupied {
-							seatsOccupied++
-						}
-						break
-					}
-					ax--
-					ay++
-				}
-				// Down/Right
-				ax = x+1
-				ay = y+1
-				for {
-					if ax >= layout.Width || ay >= layout.Height {
-						break
-					}
-					if layout.seatAt(ax, ay) != Floor {
-						if layout.seatAt(ax, ay) == Occupied {
-							seatsOccupied++
-						}
-						break
-					}
-					ax++
-					ay++
 				}
 				if seatsOccupied == 0 && seat == Empty {
 					applied.setSeatAt(x, y, Occupied)
@@ -263,24 +178,15 @@ func applyRulesWithRange(layout Layout, tolerance int) Layout {
 	return applied
 }
 
-func applyRulesUntilStable(layout Layout, tolerance int) Layout {
+func applyRulesUntilStable(layout Layout, tolerance int, firstSeat bool) Layout {
 	prevLayout := layout.copy()
 	var applied Layout
 	for {
-		applied = applyRules(prevLayout, tolerance)
-		if areLayoutsSame(prevLayout, applied) {
-			break
+		if firstSeat {
+			applied = applyRulesFirstSeat(prevLayout, tolerance)
+		} else {
+			applied = applyRules(prevLayout, tolerance)
 		}
-		prevLayout = applied.copy()
-	}
-	return applied
-}
-
-func applyRulesWithRangeUntilStable(layout Layout, tolerance int) Layout {
-	prevLayout := layout.copy()
-	var applied Layout
-	for {
-		applied = applyRulesWithRange(prevLayout, tolerance)
 		if areLayoutsSame(prevLayout, applied) {
 			break
 		}
@@ -291,13 +197,13 @@ func applyRulesWithRangeUntilStable(layout Layout, tolerance int) Layout {
 
 func part1(lines []string) int {
 	layout := parseInput(lines)
-	applied := applyRulesUntilStable(layout, 4)
+	applied := applyRulesUntilStable(layout, 4, false)
 	return applied.occupiedSeats()
 }
 
 func part2(lines []string) int {
 	layout := parseInput(lines)
-	applied := applyRulesWithRangeUntilStable(layout, 5)
+	applied := applyRulesUntilStable(layout, 5, true)
 	return applied.occupiedSeats()
 }
 
