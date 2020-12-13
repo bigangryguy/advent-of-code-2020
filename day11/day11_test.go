@@ -192,3 +192,16 @@ func Test_part1(t *testing.T) {
 		t.Errorf("part1 = %d, expected %d\n", actual, expected)
 	}
 }
+
+func Test_part2(t *testing.T) {
+	lines, err := getInput("day11_test_input.txt")
+	if err != nil {
+		fmt.Println("Error getting input: ", err)
+	}
+
+	expected := 26
+	actual := part2(lines)
+	if actual != expected {
+		t.Errorf("part2 = %d, expected %d\n", actual, expected)
+	}
+}
