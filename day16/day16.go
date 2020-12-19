@@ -99,6 +99,13 @@ func ticketFromText(text string) (t Ticket, err error) {
 	return
 }
 
+func sum(nums []int) (result int) {
+	for _, num := range nums {
+		result += num
+	}
+	return
+}
+
 func parseInput(lines []string) (rules []Rule, yourTicket Ticket, nearbyTickets []Ticket, err error) {
 	nextLineIsYourTicket := false
 	nextLinesAreNearbyTickets := false
@@ -151,9 +158,83 @@ func validForAnyRule(value int, rules []Rule) bool {
 	return false
 }
 
-func sum(nums []int) (result int) {
-	for _, num := range nums {
-		result += num
+func filterValidTickets(tickets []Ticket, rules []Rule) (validTickets []Ticket) {
+	for _, ticket := range tickets {
+		isValid := true
+		for _, value := range ticket.Values {
+			if !validForAnyRule(value, rules) {
+				isValid = false
+				break
+			}
+		}
+		if isValid {
+			validTickets = append(validTickets, ticket)
+		}
+	}
+	return
+}
+
+func determinePositions(tickets []Ticket, rules []Rule) (positions map[string]int) {
+	numPositions := len(tickets[0].Values)
+	positions = make(map[string]int)
+
+	sieve := make(map[int]map[string]int)
+	for i := 0; i < numPositions; i++ {
+		sieve[i] = make(map[string]int)
+	}
+
+	// Set count of rules valid for each position
+	for  _, ticket := range tickets {
+		for i := 0; i < numPositions; i++ {
+			for _, rule := range rules {
+				if rule.isValueValid(ticket.Values[i]) {
+					sieve[i][rule.Name]++
+				}
+			}
+		}
+	}
+
+	// Remove rules that aren't valid for all tickets at a position
+	placedRules := []string {}
+	for position, rules := range sieve {
+		var maxPositions int
+		for _, count := range rules {
+			if count > maxPositions {
+				maxPositions = count
+			}
+		}
+		for rule, count := range rules {
+			if count < maxPositions {
+				delete(rules, rule)
+			}
+		}
+		if len(rules) == 1 {
+			for rule, _ := range rules {
+				positions[rule] = position
+				placedRules = append(placedRules, rule)
+			}
+			delete(sieve, position)
+		}
+	}
+
+	for len(positions) < numPositions {
+		for _, placedRule := range placedRules {
+			for _, rules := range sieve {
+				if _, ok := rules[placedRule]; ok {
+					delete(rules, placedRule)
+				}
+			}
+		}
+
+		for position, rules := range sieve {
+			if len(rules) == 1 {
+				for rule, _ := range rules {
+					positions[rule] = position
+					placedRules = append(placedRules, rule)
+				}
+				delete(sieve, position)
+			}
+		}
 	}
 	return
 }
@@ -173,6 +254,25 @@ func part1(lines []string) (result int, err error) {
 	return
 }
 
+func part2(lines []string) (result int, err error) {
+	var rules []Rule
+	var yourTicket Ticket
+	var nearbyTickets []Ticket
+	rules, yourTicket, nearbyTickets, err = parseInput(lines)
+	if err != nil {
+		return
+	}
+
+	positions := determinePositions(nearbyTickets, rules)
+	result = 1
+	for name, position := range positions {
+		if len(name) >= 9 && name[:9] == "departure" {
+			result *= yourTicket.Values[position]
+		}
+	}
+	return
+}
+
 func main() {
 	var lines []string
 	var err error
@@ -183,5 +283,15 @@ func main() {
 
 	var part1Result int
 	part1Result, err = part1(lines)
+	if err != nil {
+		fmt.Printf("Error getting part 1 answer: %v\n", err)
+	}
 	fmt.Printf("Part 1 answer: %d\n", part1Result)
+
+	var part2Result int
+	part2Result, err = part2(lines)
+	if err != nil {
+		fmt.Printf("Error getting part 2 answer: %v\n", err)
+	}
+	fmt.Printf("Part 2 answer: %d\n", part2Result)
 }

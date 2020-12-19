@@ -243,3 +243,112 @@ func Test_getInvalidValues(t *testing.T) {
 		}
 	}
 }
+
+func Test_filterValidTickets(t *testing.T) {
+	rules := []Rule {
+		Rule {
+			Name: "class",
+			Range1: Range{ Min: 1, Max: 3 },
+			Range2: Range{ Min: 5, Max: 7 },
+		},
+		Rule {
+			Name: "row",
+			Range1: Range{ Min: 6, Max: 11 },
+			Range2: Range{ Min: 33, Max: 44 },
+		},
+		Rule {
+			Name: "seat",
+			Range1: Range{ Min: 13, Max: 40 },
+			Range2: Range{ Min: 45, Max: 50 },
+		},
+	}
+	tickets := []Ticket {
+		Ticket {
+			Values: []int { 7, 1, 14 },
+		},
+		Ticket {
+			Values: []int { 7, 3, 47 },
+		},
+		Ticket {
+			Values: []int { 40, 4, 50 },
+		},
+		Ticket {
+			Values: []int { 55, 2, 20, 56 },
+		},
+	}
+	expected := []Ticket {
+		Ticket{
+			Values: []int{7, 1, 14},
+		},
+		Ticket{
+			Values: []int{7, 3, 47},
+		},
+	}
+
+	actual := filterValidTickets(tickets, rules)
+	if len(actual) != len(expected) {
+		t.Fatalf("Length of actual does not match length of expected\nactual = %v, expected = %v\n",
+			actual, expected)
+	}
+	for i, actualTicket := range actual {
+		if !areTicketsSame(actualTicket, expected[i]) {
+			t.Errorf("filterValidTickets = %v at index %d, expected %v\n",
+				actualTicket, i, expected[i])
+		}
+	}
+}
+
+func Test_determinePositions(t *testing.T) {
+	tickets := []Ticket {
+		Ticket {
+			Values: []int { 7, 1, 14 },
+		},
+		Ticket {
+			Values: []int { 7, 3, 47 },
+		},
+		Ticket {
+			Values: []int { 40, 4, 50 },
+		},
+		Ticket {
+			Values: []int { 55, 2, 20, 56 },
+		},
+	}
+	rules := []Rule {
+		Rule {
+			Name: "class",
+			Range1: Range{ Min: 1, Max: 3 },
+			Range2: Range{ Min: 5, Max: 7 },
+		},
+		Rule {
+			Name: "row",
+			Range1: Range{ Min: 6, Max: 11 },
+			Range2: Range{ Min: 33, Max: 44 },
+		},
+		Rule {
+			Name: "seat",
+			Range1: Range{ Min: 13, Max: 40 },
+			Range2: Range{ Min: 45, Max: 50 },
+		},
+	}
+	expected := map[string]int {
+		"row": 0,
+		"class": 1,
+		"seat": 2,
+	}
+
+	actual := determinePositions(tickets, rules)
+	if len(actual) != len(expected) {
+		t.Fatalf("Length of actual does not match length of expected\nactual = %v, expected = %v\n",
+			actual, expected)
+	}
+	for rule, position := range actual {
+		if expectedPosition, ok := expected[rule]; ok {
+			if expectedPosition != position {
+				t.Errorf("determinePositions: %s = %d, expected %d\n",
+					rule, position, expectedPosition)
+			}
+		} else {
+			t.Errorf("determinePositions: Returned %s, which is not expected\n", rule)
+		}
+	}
+}
